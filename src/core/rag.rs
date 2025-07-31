@@ -164,7 +164,7 @@ impl<E: Debug + Embedder + Send + Sync> VectorStoreProvider for InMemoryVectorSt
             let score = Self::cosine_similarity(&query_embedding, &doc.embedding).await;
             scored.push((score, doc));
         }
-        scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+        scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
         let results = scored
             .into_iter()
             .take(5)

@@ -168,7 +168,8 @@ impl TaskManager {
 
                 match task_repo.get_task_config(&task.task_id) {
                     Ok(task_config) => {
-                        let vector_store = Self::initialize_vector_store(&task_config);
+                        let vector_store = Self::initialize_vector_store(&task_config)
+                            .expect("Failed to initialize vector store");
                         let manager_task = Task::from((task, task_config.clone()));
                         let workflow = Workflow::new(task_config.workflow.steps.clone());
                         let task_worker = TaskWorker::new(

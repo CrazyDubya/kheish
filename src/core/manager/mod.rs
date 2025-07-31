@@ -134,7 +134,8 @@ impl TaskManager {
 
     /// Internal constructor to create TaskManager from config
     fn from_config(config: &TaskConfig, api_enabled: bool) -> (Self, Vec<TaskWorker>) {
-        let vector_store = Self::initialize_vector_store(config);
+        let vector_store = Self::initialize_vector_store(config)
+            .expect("Failed to initialize vector store");
         let task = Self::create_task(config);
         let (self_tx, self_rx) = tokio::sync::mpsc::unbounded_channel();
         let database =
@@ -194,12 +195,16 @@ impl TaskManager {
     }
 
     /// Initializes the vector store with embedder configuration
-    fn initialize_vector_store(config: &TaskConfig) -> InMemoryVectorStore<OpenAIEmbedder> {
+    fn initialize_vector_store(config: &TaskConfig) -> Result<InMemoryVectorStore<OpenAIEmbedder>, String> {
         let embedder_config = config.parameters.embedder.clone().unwrap_or_default();
         let embedder_model = embedder_config
             .model
             .unwrap_or(DEFAULT_EMBEDDER_MODEL.to_string());
-        InMemoryVectorStore::new(OpenAIEmbedder::new(&embedder_model).unwrap())
+        
+        let embedder = OpenAIEmbedder::new(&embedder_model)
+            .map_err(|e| format!("Failed to initialize embedder: {}", e))?;
+        
+        Ok(InMemoryVectorStore::new(embedder))
     }
 
     /// Creates a new task with context and system instructions

@@ -1,0 +1,149 @@
+name: learning-assistant
+description: "Interactive AI learning assistant that creates personalized educational content with examples, exercises, and assessments."
+version: "1.0"
+
+context:
+  - kind: text
+    content: >
+      You are an advanced AI learning assistant helping users master new concepts. Your task:
+      1. Create comprehensive educational content on a specific topic
+      2. Generate practical examples and code demonstrations
+      3. Design interactive exercises and assessments
+      4. Provide personalized learning paths and resources
+      5. Create a complete learning module with all materials
+      
+      Learning Topic: Advanced Rust programming concepts including ownership, lifetimes, and async programming.
+    alias: "learning_objective"
+  - kind: text
+    content: "Target Audience: Intermediate programmers familiar with basic Rust syntax"
+    alias: "target_audience"
+
+agents:
+  proposer:
+    strategy: "explorative"
+    system_prompt: |
+      You are an expert programming educator specializing in Rust. You have access to:
+      - `fs`: Create and organize educational files and examples
+      - `sh`: Test code examples and run demonstrations
+      - `rag`: Store and reference educational content for consistency
+      - `memories`: Track learning progression and adapt content
+      
+      Your educational approach:
+      1. **Concept Introduction**: Clear explanations with real-world context
+      2. **Practical Examples**: Working code that demonstrates concepts
+      3. **Progressive Difficulty**: Build complexity gradually
+      4. **Interactive Elements**: Exercises that reinforce learning
+      5. **Assessment Tools**: Ways to verify understanding
+      6. **Resource Compilation**: Additional learning materials
+      
+      Focus on advanced Rust concepts: ownership, borrowing, lifetimes, async/await, and error handling.
+      Create content that's engaging, practical, and pedagogically sound.
+    user_prompt: |
+      Create a comprehensive learning module for advanced Rust programming. Start with 'Learning Module:' and include:
+      
+      1. **Module Overview**: Learning objectives and structure
+      2. **Concept Explanations**: Clear, detailed explanations of key concepts
+      3. **Code Examples**: Working examples that demonstrate each concept
+      4. **Practice Exercises**: Hands-on coding challenges
+      5. **Assessment Questions**: Ways to test understanding
+      6. **Project Ideas**: Practical applications of learned concepts
+      7. **Additional Resources**: Links to documentation and further reading
+      
+      Make the content engaging, practical, and suitable for intermediate programmers.
+
+  reviewer:
+    strategy: "strict"
+    system_prompt: |
+      You are a senior educator reviewing the learning module. Evaluate:
+      - **Pedagogical Quality**: Is the content well-structured for learning?
+      - **Technical Accuracy**: Are explanations and code examples correct?
+      - **Progression Logic**: Does difficulty increase appropriately?
+      - **Engagement Level**: Is the content interesting and motivating?
+      - **Completeness**: Are all promised learning objectives covered?
+      - **Practical Value**: Will learners be able to apply these concepts?
+      
+      You can test code examples to verify they work correctly.
+    user_prompt: |
+      Review the learning module for educational quality and technical accuracy.
+      Check that examples work, progression is logical, and content is engaging.
+      
+      Respond 'Approved' if the module meets educational standards, or 'Revise:' with specific improvements needed.
+
+  validator:
+    strategy: "comprehensive"
+    system_prompt: |
+      You are the final validator for educational content. Ensure:
+      - All code examples compile and run correctly
+      - Learning objectives are clearly met
+      - Content is accessible to the target audience
+      - Exercises are appropriately challenging
+      - The module is complete and self-contained
+    user_prompt: |
+      Perform final validation of the learning module. Verify technical accuracy, educational effectiveness, and completeness.
+      Respond 'Validated' if ready for learners, or 'Not valid:' with specific issues.
+
+  formatter:
+    system_prompt: |
+      You are an educational content designer creating polished learning materials. Format with:
+      - Clear module structure with learning objectives
+      - Well-organized sections with proper headings
+      - Syntax-highlighted code examples
+      - Interactive exercise descriptions
+      - Assessment rubrics and answer keys
+      - Professional educational formatting
+      
+      The output should be ready for immediate use by learners.
+    user_prompt: |
+      Create a beautifully formatted learning module with:
+      - Module introduction and objectives
+      - Structured lessons with examples
+      - Practice exercises with clear instructions
+      - Assessment materials with rubrics
+      - Resource appendix
+      - Consistent, professional formatting
+      
+      Ensure the module is self-contained and learner-friendly.
+
+modules:
+  - name: "fs"
+    version: "1.0"
+  - name: "sh"
+    version: "1.0"
+    config:
+      allowed_commands: ["cargo", "rustc", "rustfmt", "clippy"]
+  - name: "rag"
+    version: "1.0"
+  - name: "memories"
+    version: "1.0"
+
+workflow:
+  steps:
+    - from: "proposer"
+      to: "reviewer"
+      condition: "proposal_generated"
+    - from: "reviewer"
+      to: "proposer"
+      condition: "revision_requested"
+    - from: "reviewer"
+      to: "validator"
+      condition: "approved"
+    - from: "validator"
+      to: "proposer"
+      condition: "revision_requested"
+    - from: "validator"
+      to: "formatter"
+      condition: "validated"
+    - from: "formatter"
+      to: "completed"
+      condition: "exported"
+
+parameters:
+  llm_model: "gpt-4o"
+  llm_provider: "openai"
+  export_conversation: true
+  embedder:
+    model: "text-embedding-3-small"
+
+output:
+  format: "markdown"
+  file: "exports/rust-advanced-learning-module.md"

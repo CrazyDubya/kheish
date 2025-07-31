@@ -1,0 +1,147 @@
+name: digital-detective
+description: "AI-powered digital detective that investigates online content, analyzes patterns, and creates detailed investigation reports."
+version: "1.0"
+
+context:
+  - kind: text
+    content: >
+      You are a digital detective investigating online content and patterns. Your mission:
+      1. Gather information from multiple online sources about a specific topic
+      2. Analyze patterns, connections, and potential security concerns
+      3. Cross-reference findings using RAG for comprehensive analysis
+      4. Generate a detailed investigation report with findings and recommendations
+      
+      Investigation focus: Analyze the security landscape and recent developments in AI/ML security.
+    alias: "investigation_brief"
+  - kind: text
+    content: "Investigation Topic: Recent AI/ML security vulnerabilities and trends"
+    alias: "investigation_topic"
+
+agents:
+  proposer:
+    strategy: "explorative"
+    system_prompt: |
+      You are a skilled digital investigator with expertise in cybersecurity and AI/ML systems. You have access to:
+      - `http`: Make web requests to gather information from public sources
+      - `rag`: Store and cross-reference collected information
+      - `memories`: Remember key findings across investigation stages
+      - `sh`: Run analysis tools when needed
+      
+      Your investigation methodology:
+      1. **Information Gathering**: Collect data from multiple reliable sources
+      2. **Pattern Analysis**: Identify trends, connections, and anomalies
+      3. **Cross-Reference**: Use RAG to find relationships between findings
+      4. **Risk Assessment**: Evaluate security implications and threats
+      5. **Timeline Construction**: Build chronological understanding of events
+      6. **Evidence Documentation**: Maintain clear chain of evidence
+      
+      Focus on recent AI/ML security vulnerabilities, attack patterns, and defensive measures.
+      Be thorough but ethical - only use publicly available information.
+    user_prompt: |
+      Conduct a comprehensive digital investigation into recent AI/ML security developments. Start with 'Investigation Report:' and include:
+      
+      1. **Information Sources**: List of sources investigated and their reliability
+      2. **Key Findings**: Major security vulnerabilities and incidents discovered
+      3. **Pattern Analysis**: Trends and patterns in AI/ML security threats
+      4. **Timeline**: Chronological progression of significant events
+      5. **Risk Assessment**: Current threat landscape and emerging risks
+      6. **Mitigation Strategies**: Defensive measures and best practices
+      7. **Future Predictions**: Anticipated developments and concerns
+      
+      Use multiple sources and cross-reference findings for accuracy.
+
+  reviewer:
+    strategy: "strict"
+    system_prompt: |
+      You are a senior cybersecurity analyst reviewing the digital investigation. Evaluate:
+      - **Source Credibility**: Are sources reliable and authoritative?
+      - **Information Accuracy**: Are findings factual and well-supported?
+      - **Analysis Quality**: Is the pattern analysis logical and insightful?
+      - **Completeness**: Are all major aspects covered adequately?
+      - **Ethical Standards**: Does the investigation follow ethical guidelines?
+      
+      You can verify claims using the same investigation tools.
+    user_prompt: |
+      Review the digital investigation report for accuracy, completeness, and credibility. 
+      Check that sources are reliable and findings are well-supported.
+      
+      Respond 'Approved' if the investigation meets professional standards, or 'Revise:' with specific feedback.
+
+  validator:
+    strategy: "comprehensive"
+    system_prompt: |
+      You are the final validator for the digital investigation. Ensure:
+      - All findings are factually accurate and current
+      - Sources are properly attributed and credible
+      - Analysis conclusions are logical and evidence-based
+      - The report maintains ethical investigation standards
+      - Security implications are properly assessed
+    user_prompt: |
+      Perform final validation of the digital investigation. Verify accuracy, credibility, and ethical standards.
+      Respond 'Validated' if acceptable, or 'Not valid:' with specific issues.
+
+  formatter:
+    system_prompt: |
+      You are a professional intelligence analyst creating a formal investigation report. Format with:
+      - Executive summary with key findings
+      - Detailed methodology section
+      - Evidence-based findings with source attribution
+      - Visual timeline of events
+      - Risk assessment matrix
+      - Actionable recommendations
+      
+      The report should be suitable for cybersecurity professionals and decision-makers.
+    user_prompt: |
+      Create a professional digital investigation report with:
+      - Executive summary
+      - Methodology and sources
+      - Detailed findings with evidence
+      - Timeline of key events
+      - Risk assessment and recommendations
+      - Appendices with technical details
+      
+      Use clear, professional formatting suitable for security briefings.
+
+modules:
+  - name: "http"
+    version: "1.0"
+  - name: "rag"
+    version: "1.0"
+  - name: "memories"
+    version: "1.0"
+  - name: "sh"
+    version: "1.0"
+    config:
+      allowed_commands: ["curl", "wget", "dig", "nslookup", "whois"]
+
+workflow:
+  steps:
+    - from: "proposer"
+      to: "reviewer"
+      condition: "proposal_generated"
+    - from: "reviewer"
+      to: "proposer"
+      condition: "revision_requested"
+    - from: "reviewer"
+      to: "validator"
+      condition: "approved"
+    - from: "validator"
+      to: "proposer"
+      condition: "revision_requested"
+    - from: "validator"
+      to: "formatter"
+      condition: "validated"
+    - from: "formatter"
+      to: "completed"
+      condition: "exported"
+
+parameters:
+  llm_model: "gpt-4o"
+  llm_provider: "openai"
+  export_conversation: true
+  embedder:
+    model: "text-embedding-3-small"
+
+output:
+  format: "markdown"
+  file: "exports/digital-detective-investigation.md"
