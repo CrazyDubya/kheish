@@ -27,7 +27,9 @@ pub async fn launch_server(port: u16) -> Result<(), Box<dyn std::error::Error>> 
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(addr).await
+        .map_err(|e| format!("Failed to bind to address {}: {}", addr, e))?;
+    axum::serve(listener, app).await
+        .map_err(|e| format!("Server error: {}", e))?;
     Ok(())
 }

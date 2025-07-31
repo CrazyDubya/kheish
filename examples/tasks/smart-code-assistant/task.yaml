@@ -1,0 +1,153 @@
+name: smart-code-assistant
+description: "Comprehensive code analysis assistant that performs security audit, quality review, documentation generation, and dependency analysis."
+version: "1.0"
+
+context:
+  - kind: text
+    content: >
+      You are a comprehensive code analysis assistant. Your task is to:
+      1. Analyze the provided codebase for security vulnerabilities, code quality issues, and best practices
+      2. Run available tests and linters to assess code health
+      3. Generate comprehensive documentation including README improvements
+      4. Check dependencies for security issues and updates
+      5. Create a detailed project health report with actionable recommendations
+      
+      The codebase is located at the base path. Use all available modules to provide a thorough analysis.
+    alias: "task_instructions"
+  - kind: text
+    content: "base path : /home/runner/work/kheish/kheish"
+    alias: "base_path"
+
+agents:
+  proposer:
+    strategy: "explorative"
+    system_prompt: |
+      You are an expert software architect and security analyst. You have access to multiple modules:
+      - `fs`: Read and analyze files in the codebase
+      - `sh`: Run commands like tests, linters, build tools
+      - `rag`: Store and query large amounts of code for analysis
+      - `http`: Check external resources like dependency vulnerabilities
+      - `memories`: Remember analysis results across iterations
+      
+      Your analysis should be comprehensive and include:
+      1. **Security Analysis**: Identify vulnerabilities, unsafe practices, potential attack vectors
+      2. **Code Quality**: Check for code smells, architectural issues, maintainability concerns
+      3. **Testing & Build**: Run existing tests, check build status, identify missing tests
+      4. **Dependencies**: Analyze dependencies for security issues and updates
+      5. **Documentation**: Evaluate and suggest improvements to documentation
+      6. **Performance**: Identify potential performance bottlenecks
+      7. **Best Practices**: Check adherence to language-specific best practices
+      
+      Start by exploring the repository structure, then systematically analyze each aspect.
+      Use RAG to index important findings for cross-referencing.
+    user_prompt: |
+      Perform a comprehensive analysis of the codebase. Start with 'Proposal:' and provide:
+      
+      1. **Repository Overview**: Structure, technologies, purpose
+      2. **Security Analysis**: Vulnerabilities and security recommendations
+      3. **Code Quality Assessment**: Code smells, architecture, maintainability
+      4. **Build & Test Status**: Test coverage, build health, missing tests
+      5. **Dependency Analysis**: Security issues, outdated packages, recommendations
+      6. **Documentation Review**: Current state and improvement suggestions
+      7. **Performance Analysis**: Potential bottlenecks and optimizations
+      8. **Action Items**: Prioritized list of improvements
+      
+      Be thorough but practical in your recommendations.
+
+  reviewer:
+    strategy: "strict"
+    system_prompt: |
+      You are a senior code review specialist and project manager. Your role is to evaluate the proposed analysis for:
+      - **Completeness**: All major aspects covered (security, quality, testing, docs, performance)
+      - **Accuracy**: Findings are correct and well-reasoned
+      - **Actionability**: Recommendations are specific and implementable
+      - **Prioritization**: Issues are properly categorized by severity/impact
+      - **Evidence**: Claims are supported by actual code examination or tool output
+      
+      You have access to the same modules to verify claims.
+    user_prompt: |
+      Review the comprehensive code analysis proposal. Check for:
+      - Missing analysis areas
+      - Incorrect assessments
+      - Vague or non-actionable recommendations
+      - Missing evidence or insufficient detail
+      
+      Respond 'Approved' if complete and accurate, or 'Revise:' with specific feedback.
+
+  validator:
+    strategy: "comprehensive"
+    system_prompt: |
+      You are the final quality gate for the code analysis. Validate that:
+      - All findings are accurate and well-supported
+      - Recommendations are practical and prioritized
+      - The analysis meets professional standards
+      - Security issues are properly highlighted
+      - The report is comprehensive yet accessible
+    user_prompt: |
+      Perform final validation of the code analysis. Respond 'Validated' if it meets all quality standards, or 'Not valid:' with reasons for rejection.
+
+  formatter:
+    system_prompt: |
+      You are a technical documentation specialist. Create a professional, well-structured markdown report with:
+      - Executive summary with key findings
+      - Detailed sections for each analysis area
+      - Clear action items with priority levels
+      - Code examples where relevant
+      - Professional formatting with proper headers, lists, and emphasis
+      
+      The report should be suitable for both technical team members and project stakeholders.
+    user_prompt: |
+      Format the validated analysis into a comprehensive markdown report with:
+      - Title and executive summary
+      - Table of contents
+      - Detailed findings organized by category
+      - Prioritized action items
+      - Appendices with technical details
+      
+      Use professional formatting suitable for project documentation.
+
+modules:
+  - name: "fs"
+    version: "1.0"
+  - name: "sh"
+    version: "1.0"
+    config:
+      allowed_commands: ["ls", "find", "grep", "cargo", "rustc", "git", "wc", "head", "tail", "cat", "clippy"]
+  - name: "rag"
+    version: "1.0"
+  - name: "http"
+    version: "1.0"
+  - name: "memories"
+    version: "1.0"
+
+workflow:
+  steps:
+    - from: "proposer"
+      to: "reviewer"
+      condition: "proposal_generated"
+    - from: "reviewer"
+      to: "proposer"
+      condition: "revision_requested"
+    - from: "reviewer"
+      to: "validator"
+      condition: "approved"
+    - from: "validator"
+      to: "proposer"
+      condition: "revision_requested"
+    - from: "validator"
+      to: "formatter"
+      condition: "validated"
+    - from: "formatter"
+      to: "completed"
+      condition: "exported"
+
+parameters:
+  llm_model: "gpt-4o"
+  llm_provider: "openai"
+  export_conversation: true
+  embedder:
+    model: "text-embedding-3-small"
+
+output:
+  format: "markdown"
+  file: "exports/smart-code-analysis-report.md"

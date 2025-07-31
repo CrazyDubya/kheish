@@ -38,6 +38,77 @@
 - **Single Agent, Many Tasks**  
   Kheish can handle parallel or serial tasks by defining separate YAML configurations or combining them into a single multi-step scenario. Each role or module request is orchestrated **internally** by Kheish’s logic—no external orchestrator needed.
 
+## Demo Showcase
+
+Kheish comes with comprehensive demos that showcase its capabilities across different use cases:
+
+### 🔬 Smart Code Assistant
+A comprehensive code analysis assistant that demonstrates **full functionality** across all modules:
+- **Security auditing** with vulnerability detection
+- **Code quality assessment** and best practices review  
+- **Build & test analysis** with automated tool execution
+- **Dependency security review** and update recommendations
+- **Documentation evaluation** and improvement suggestions
+
+**Modules used**: `fs`, `sh`, `rag`, `http`, `memories`
+**Use case**: Software development teams, security auditors, DevOps
+
+### 🕵️ Digital Detective  
+AI-powered digital investigator for threat intelligence and online research:
+- **Multi-source information gathering** from web APIs
+- **Pattern analysis** using RAG for data correlation
+- **Professional intelligence reporting** with evidence documentation
+- **Timeline construction** and risk assessment
+
+**Modules used**: `http`, `rag`, `memories`, `sh`
+**Use case**: Cybersecurity professionals, researchers, analysts
+
+### 📚 Interactive Learning Assistant
+Educational content creator that builds comprehensive learning modules:
+- **Personalized curriculum design** with progressive difficulty
+- **Interactive code examples** with validation
+- **Assessment tools** and exercise generation
+- **Resource compilation** and learning path optimization
+
+**Modules used**: `fs`, `sh`, `rag`, `memories`  
+**Use case**: Educators, training departments, technical writers
+
+### Legacy Examples
+| Task Name | Description |
+|-----------|-------------|
+| `audit-code` | Security audit of codebases with vulnerability detection |
+| `hf-secret-finder` | Hugging Face repository secret detection |
+| `find-in-file` | Multi-file secret searching with chunk processing |
+| `weather-blog-post` | Weather API integration with creative content generation |
+
+## Quick Start
+
+1. **Set up your API key**:
+   ```bash
+   export OPENAI_API_KEY="your-api-key-here"
+   ```
+
+2. **Build Kheish**:
+   ```bash
+   cargo build --release
+   ```
+
+3. **Run a comprehensive demo**:
+   ```bash
+   # Smart Code Assistant (recommended first demo)
+   ./target/release/kheish --task-config examples/tasks/smart-code-assistant/task.yaml
+   
+   # Digital Detective  
+   ./target/release/kheish --task-config examples/tasks/digital-detective/task.yaml
+   
+   # Learning Assistant
+   ./target/release/kheish --task-config examples/tasks/learning-assistant/task.yaml
+   ```
+
+4. **View results**: Check the `exports/` directory for generated reports
+
+5. **Explore more**: See `examples/tasks/README.md` for detailed demo documentation
+
 ## Example Tasks
 
 | Task Name | Description |
