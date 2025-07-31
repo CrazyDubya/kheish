@@ -10,7 +10,7 @@
 //!
 //! It also supports running an optional API server for external interaction.
 
-#![feature(trait_upcasting)]
+
 
 mod agents;
 mod api;
