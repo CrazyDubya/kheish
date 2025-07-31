@@ -3,7 +3,7 @@
 # Demo validation script for Kheish
 # This script validates that all demo YAML configurations are valid
 
-set -e
+set -euo pipefail
 
 echo "🔍 Kheish Demo Validation Script"
 echo "================================="

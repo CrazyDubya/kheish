@@ -3,7 +3,7 @@
 # Kheish Demo Runner
 # Interactive script to run and explore Kheish demos
 
-set -e
+set -euo pipefail
 
 echo "🚀 Kheish Demo Runner"
 echo "===================="
@@ -16,7 +16,7 @@ if [ ! -f "Cargo.toml" ] || [ ! -f "validate-demos.sh" ]; then
 fi
 
 # Check for API key
-if [ -z "$OPENAI_API_KEY" ]; then
+if [ -z "${OPENAI_API_KEY:-}" ]; then
     echo "⚠️  Warning: OPENAI_API_KEY not set"
     echo "   Set it with: export OPENAI_API_KEY=\"your-key-here\""
     echo ""
