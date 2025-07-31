@@ -32,10 +32,12 @@ for demo in "${DEMOS[@]}"; do
     if [ -f "$demo" ]; then
         echo -n "  ✅ $demo ... "
         # Use basic YAML syntax check
-        if python3 -c "import yaml; yaml.safe_load(open('$demo'))" 2>/dev/null; then
+        error_message=$(python3 -c "import yaml; yaml.safe_load(open('$demo'))" 2>&1)
+        if [ $? -eq 0 ]; then
             echo "VALID"
         else
             echo "❌ INVALID YAML syntax"
+            echo "Error details: $error_message"
             exit 1
         fi
     else
